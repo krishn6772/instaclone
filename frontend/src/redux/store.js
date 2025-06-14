@@ -6,7 +6,7 @@ import chatSlice from "./chatSlice.js";
 import rtnSlice from "./rtnSlice.js";
 import axios from "axios";
 
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
+axios.defaults.baseURL = import.meta.env.URL;
 
 import {
     persistReducer,
