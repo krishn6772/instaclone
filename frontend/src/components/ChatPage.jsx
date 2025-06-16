@@ -8,6 +8,7 @@ import { MessageCircleCode } from 'lucide-react';
 import Messages from './Messages';
 import axios from 'axios';
 import { setMessages } from '@/redux/chatSlice';
+import { retryAxiosRequest } from '@/lib/utils';
 
 const ChatPage = () => {
     const [textMessage, setTextMessage] = useState("");
@@ -17,17 +18,27 @@ const ChatPage = () => {
 
     const sendMessageHandler = async (receiverId) => {
         try {
-            const res = await axios.post(`/api/v1/message/send/${receiverId}`, { textMessage }, {
-                headers: {
-                    "Content-Type": 'application/json'
-                }, withCredentials: true
-            })
+            const sendRequest = () => axios.post(`/api/v1/message/send/${receiverId}`, 
+                { textMessage }, 
+                {
+                    headers: { "Content-Type": 'application/json' },
+                    withCredentials: true
+                }
+            );
+
+            const res = await retryAxiosRequest(sendRequest);
+            
             if (res.data.success) {
                 dispatch(setMessages([...messages, res.data.newMessage]));
                 setTextMessage("");
             }
         } catch (error) {
-            console.log(error);
+            if (error.code === 'ERR_BAD_RESPONSE') {
+                toast.error('Server temporarily unavailable. Please try again.');
+            } else {
+                toast.error('Failed to send message');
+            }
+            console.error('Send message error:', error);
         }
     }
 

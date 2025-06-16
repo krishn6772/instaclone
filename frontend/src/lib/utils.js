@@ -14,3 +14,17 @@ export const readFileAsDataURL = (file) => {
     reader.readAsDataURL(file);
   })
 }
+
+export const retryAxiosRequest = async (requestFn, maxRetries = 3, delay = 1000) => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      if (error.response?.status === 502 && i < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+};
